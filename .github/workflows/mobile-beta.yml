@@ -1,0 +1,99 @@
+name: Mobile beta validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_android:
+        description: Build an installable Android APK after validation
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+
+      - name: Install dependencies and generate lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run formatting, lint, types and tests
+        run: |
+          pnpm format:check
+          pnpm lint
+          pnpm typecheck
+          pnpm audit:static
+          pnpm test:behavior
+
+      - name: Run Expo Doctor
+        run: pnpm doctor
+
+      - name: Export Android and web bundles
+        run: |
+          pnpm export:android
+          pnpm export:web
+
+      - name: Upload validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: habittus-mobile-validation
+          if-no-files-found: error
+          path: |
+            pnpm-lock.yaml
+            dist/android
+            dist/web
+
+  build-android:
+    if: inputs.build_android
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      EXPO_OWNER: ${{ vars.EXPO_OWNER }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Set up Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Validate EAS configuration
+        run: |
+          test -n "$EAS_PROJECT_ID" || { echo "Missing EAS_PROJECT_ID repository variable"; exit 1; }
+          test -n "$EXPO_OWNER" || { echo "Missing EXPO_OWNER repository variable"; exit 1; }
+
+      - name: Build installable Android beta
+        run: eas build --platform android --profile preview --non-interactive --wait

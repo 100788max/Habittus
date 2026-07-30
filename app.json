@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "HABITTUS",
+    "slug": "habittus",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "habittus",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.habittus.mobile"
+    },
+    "android": {
+      "package": "com.habittus.mobile"
+    }
+  }
+}

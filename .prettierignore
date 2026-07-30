@@ -1,0 +1,7 @@
+.expo
+node_modules
+dist
+coverage
+HABITTUS_MASTER.md
+pnpm-lock.yaml
+.npmrc
