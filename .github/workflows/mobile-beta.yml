@@ -58,12 +58,13 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: Prepare APK
         run: |
           mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk release/HABITTUS-beta.apk
+          cp android/app/build/outputs/apk/release/app-release.apk release/HABITTUS-beta.apk
+          unzip -l release/HABITTUS-beta.apk | grep -q 'assets/index.android.bundle'
 
       - name: Upload validation files
         uses: actions/upload-artifact@v4
