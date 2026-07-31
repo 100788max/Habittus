@@ -1,3 +1,4 @@
+import { accountDirectoryGateway } from '@/features/account/infrastructure/authGateway';
 import type { ContactGateway } from '@/features/contact/application/ContactGateway';
 import {
   validateContactPreferences,
@@ -10,7 +11,6 @@ import type {
   NewContactRequest,
 } from '@/features/contact/domain/contact';
 import { createDefaultContactPreferences } from '@/features/contact/domain/contact';
-import { accountDirectoryGateway } from '@/features/account/infrastructure/authGateway';
 import { profileGateway } from '@/features/profile/infrastructure/profileGateway';
 
 const wait = (milliseconds: number) =>
