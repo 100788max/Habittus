@@ -13,6 +13,9 @@ const {
 const {
   CurrentDataDiscoveryGateway,
 } = require('../src/features/discovery/infrastructure/CurrentDataDiscoveryGateway.ts');
+const {
+  MockPortfolioGateway,
+} = require('../src/features/portfolio/infrastructure/MockPortfolioGateway.ts');
 const { profileGateway } = require('../src/features/profile/infrastructure/profileGateway.ts');
 
 test('authentication errors do not reveal whether an account exists', async () => {
@@ -95,4 +98,32 @@ test('public discovery projections never expose moderation metadata', async () =
     assert.equal('moderationStatus' in entity, false);
     assert.equal('moderationReason' in entity, false);
   }
+});
+
+test('saved artworks survive a gateway restart through persistence', async () => {
+  let stored = null;
+  const persistence = {
+    async load() {
+      return stored;
+    },
+    async save(portfolios) {
+      stored = structuredClone(portfolios);
+    },
+  };
+  const firstGateway = new MockPortfolioGateway(persistence);
+  const saved = await firstGateway.saveArtwork('artist-persistence-test', {
+    title: 'Obra persistente',
+    description: 'Esta obra debe continuar disponible después de reiniciar el gateway.',
+    category: 'Pintura',
+    technique: 'Óleo',
+    year: '2026',
+    availability: 'available',
+    imageUrl: 'file:///habittus/artwork-images/obra-persistente.jpg',
+    publicationStatus: 'draft',
+  });
+
+  const restartedGateway = new MockPortfolioGateway(persistence);
+  const restored = await restartedGateway.getArtwork('artist-persistence-test', saved.id);
+  assert.equal(restored?.title, 'Obra persistente');
+  assert.equal(restored?.imageUrl, saved.imageUrl);
 });

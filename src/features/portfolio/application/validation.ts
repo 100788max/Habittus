@@ -16,14 +16,15 @@ export function validateArtwork(draft: ArtworkDraft): ArtworkErrors {
   if (!/^\d{4}$/.test(draft.year) || year < 1000 || year > maximumYear) {
     errors.year = `Ingresá un año válido hasta ${maximumYear}.`;
   }
-  if (draft.imageUrl && !isValidHttpsUrl(draft.imageUrl)) {
-    errors.imageUrl = 'Ingresá una URL de imagen completa con https://.';
+  if (draft.imageUrl && !isValidImageUri(draft.imageUrl)) {
+    errors.imageUrl = 'Seleccioná una imagen válida desde la cámara o la galería.';
   }
 
   return errors;
 }
 
-function isValidHttpsUrl(value: string): boolean {
+function isValidImageUri(value: string): boolean {
+  if (/^(file|content):\/\//.test(value)) return true;
   try {
     return new URL(value).protocol === 'https:';
   } catch {

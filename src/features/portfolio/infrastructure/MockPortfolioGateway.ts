@@ -1,13 +1,21 @@
 import type { PortfolioGateway } from '@/features/portfolio/application/PortfolioGateway';
 import type { Artwork, ArtworkDraft } from '@/features/portfolio/domain/artwork';
+import {
+  NoopPortfolioPersistence,
+  type PortfolioPersistence,
+  type SerializedPortfolios,
+} from '@/features/portfolio/infrastructure/PortfolioPersistence';
 
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 
 export class MockPortfolioGateway implements PortfolioGateway {
   private readonly portfolios = new Map<string, Artwork[]>();
+  private loadPromise: Promise<void> | null = null;
 
-  constructor() {
+  constructor(
+    private readonly persistence: PortfolioPersistence = new NoopPortfolioPersistence(),
+  ) {
     this.portfolios.set('seed-lucia', [
       {
         id: 'artwork-cauce',
@@ -48,6 +56,7 @@ export class MockPortfolioGateway implements PortfolioGateway {
   }
 
   async listArtworks(userId?: string): Promise<Artwork[]> {
+    await this.ensureLoaded();
     await wait(300);
     return userId
       ? [...(this.portfolios.get(userId) ?? [])]
@@ -55,11 +64,13 @@ export class MockPortfolioGateway implements PortfolioGateway {
   }
 
   async getArtwork(userId: string, artworkId: string): Promise<Artwork | null> {
+    await this.ensureLoaded();
     await wait(200);
     return this.portfolios.get(userId)?.find((artwork) => artwork.id === artworkId) ?? null;
   }
 
   async saveArtwork(userId: string, draft: ArtworkDraft, artworkId?: string): Promise<Artwork> {
+    await this.ensureLoaded();
     await wait(550);
     const artworks = [...(this.portfolios.get(userId) ?? [])];
     const existingIndex = artworkId
@@ -80,10 +91,12 @@ export class MockPortfolioGateway implements PortfolioGateway {
     if (existingIndex >= 0) artworks[existingIndex] = artwork;
     else artworks.push(artwork);
     this.portfolios.set(userId, artworks);
+    await this.persist();
     return artwork;
   }
 
   async deleteArtwork(userId: string, artworkId: string): Promise<void> {
+    await this.ensureLoaded();
     await wait(400);
     const artworks = this.portfolios.get(userId) ?? [];
     if (!artworks.some((artwork) => artwork.id === artworkId)) {
@@ -93,6 +106,7 @@ export class MockPortfolioGateway implements PortfolioGateway {
       userId,
       artworks.filter((artwork) => artwork.id !== artworkId),
     );
+    await this.persist();
   }
 
   async setPublicationStatus(
@@ -100,6 +114,7 @@ export class MockPortfolioGateway implements PortfolioGateway {
     artworkId: string,
     status: Artwork['publicationStatus'],
   ): Promise<Artwork> {
+    await this.ensureLoaded();
     await wait(350);
     const artworks = [...(this.portfolios.get(userId) ?? [])];
     const index = artworks.findIndex((artwork) => artwork.id === artworkId);
@@ -111,10 +126,12 @@ export class MockPortfolioGateway implements PortfolioGateway {
     };
     artworks[index] = updated;
     this.portfolios.set(userId, artworks);
+    await this.persist();
     return updated;
   }
 
   async listPublishedArtworks(): Promise<Artwork[]> {
+    await this.ensureLoaded();
     await wait(300);
     return [...this.portfolios.values()]
       .flat()
@@ -125,6 +142,7 @@ export class MockPortfolioGateway implements PortfolioGateway {
   }
 
   async getPublishedArtwork(artworkId: string): Promise<Artwork | null> {
+    await this.ensureLoaded();
     await wait(200);
     return (
       [...this.portfolios.values()]
@@ -143,6 +161,7 @@ export class MockPortfolioGateway implements PortfolioGateway {
     moderationStatus: Artwork['moderationStatus'],
     moderationReason: string,
   ): Promise<Artwork> {
+    await this.ensureLoaded();
     await wait(350);
     for (const [userId, artworks] of this.portfolios.entries()) {
       const index = artworks.findIndex((artwork) => artwork.id === artworkId);
@@ -156,8 +175,27 @@ export class MockPortfolioGateway implements PortfolioGateway {
       const next = [...artworks];
       next[index] = updated;
       this.portfolios.set(userId, next);
+      await this.persist();
       return updated;
     }
     throw new Error('Artwork not found.');
+  }
+
+  private async ensureLoaded(): Promise<void> {
+    if (!this.loadPromise) {
+      this.loadPromise = this.persistence.load().then((stored) => {
+        if (!stored) return;
+        this.portfolios.clear();
+        for (const [userId, artworks] of Object.entries(stored)) {
+          this.portfolios.set(userId, artworks);
+        }
+      });
+    }
+    await this.loadPromise;
+  }
+
+  private async persist(): Promise<void> {
+    const serialized: SerializedPortfolios = Object.fromEntries(this.portfolios.entries());
+    await this.persistence.save(serialized);
   }
 }
