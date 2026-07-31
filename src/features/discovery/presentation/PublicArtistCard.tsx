@@ -1,10 +1,10 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { ProfessionalProfile } from '@/features/profile/domain/profile';
+import type { PublicProfessionalProfile } from '@/features/discovery/domain/discovery';
 import { colors, spacing } from '@/shared/theme/tokens';
 
-export function PublicArtistCard({ profile }: { profile: ProfessionalProfile }) {
+export function PublicArtistCard({ profile }: { profile: PublicProfessionalProfile }) {
   return (
     <View style={styles.card}>
       <Text style={styles.name}>{profile.professionalName}</Text>

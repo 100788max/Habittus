@@ -1,10 +1,10 @@
 import { Link } from 'expo-router';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import type { Artwork } from '@/features/portfolio/domain/artwork';
+import type { PublicArtwork } from '@/features/discovery/domain/discovery';
 import { colors, spacing } from '@/shared/theme/tokens';
 
-export function PublicArtworkCard({ artwork }: { artwork: Artwork }) {
+export function PublicArtworkCard({ artwork }: { artwork: PublicArtwork }) {
   return (
     <View style={styles.card}>
       {artwork.imageUrl ? (
