@@ -1,4 +1,8 @@
 import type { ContactGateway } from '@/features/contact/application/ContactGateway';
+import {
+  validateContactPreferences,
+  validateContactRequest,
+} from '@/features/contact/application/validation';
 import type {
   ContactPreferences,
   ContactRequest,
@@ -6,12 +10,8 @@ import type {
   NewContactRequest,
 } from '@/features/contact/domain/contact';
 import { createDefaultContactPreferences } from '@/features/contact/domain/contact';
-import {
-  validateContactPreferences,
-  validateContactRequest,
-} from '@/features/contact/application/validation';
-import { profileGateway } from '@/features/profile/infrastructure/profileGateway';
 import { accountDirectoryGateway } from '@/features/account/infrastructure/authGateway';
+import { profileGateway } from '@/features/profile/infrastructure/profileGateway';
 
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, milliseconds));

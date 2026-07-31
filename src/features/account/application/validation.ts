@@ -1,5 +1,5 @@
-import { AuthError } from '@/features/account/domain/AuthError';
 import type { RegistrationData, SignInCredentials } from '@/features/account/domain/auth';
+import { AuthError } from '@/features/account/domain/AuthError';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

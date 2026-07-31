@@ -1,7 +1,7 @@
 require('./register-typescript.cjs');
 
-const test = require('node:test');
 const assert = require('node:assert/strict');
+const test = require('node:test');
 
 const { MockAuthGateway } = require('../src/features/account/infrastructure/MockAuthGateway.ts');
 const {

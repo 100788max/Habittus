@@ -1,12 +1,12 @@
 import type { AuthGateway } from '@/features/account/application/AuthGateway';
 import { normalizeEmail } from '@/features/account/application/validation';
-import { AuthError } from '@/features/account/domain/AuthError';
 import type {
   AuthSession,
   AuthUser,
   RegistrationData,
   SignInCredentials,
 } from '@/features/account/domain/auth';
+import { AuthError } from '@/features/account/domain/AuthError';
 
 type MockAccount = AuthUser & { password: string };
 

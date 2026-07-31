@@ -47,9 +47,11 @@ export class MockPortfolioGateway implements PortfolioGateway {
     ]);
   }
 
-  async listArtworks(userId: string): Promise<Artwork[]> {
+  async listArtworks(userId?: string): Promise<Artwork[]> {
     await wait(300);
-    return [...(this.portfolios.get(userId) ?? [])];
+    return userId
+      ? [...(this.portfolios.get(userId) ?? [])]
+      : [...this.portfolios.values()].flat();
   }
 
   async getArtwork(userId: string, artworkId: string): Promise<Artwork | null> {
@@ -134,11 +136,6 @@ export class MockPortfolioGateway implements PortfolioGateway {
             artwork.moderationStatus === 'active',
         ) ?? null
     );
-  }
-
-  async listArtworks(): Promise<Artwork[]> {
-    await wait(250);
-    return [...this.portfolios.values()].flat();
   }
 
   async setModeration(

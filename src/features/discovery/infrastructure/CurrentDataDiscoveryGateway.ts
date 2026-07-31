@@ -1,3 +1,4 @@
+import { accountDirectoryGateway } from '@/features/account/infrastructure/authGateway';
 import type { DiscoveryGateway } from '@/features/discovery/application/DiscoveryGateway';
 import type {
   DiscoveryFilters,
@@ -6,7 +7,6 @@ import type {
   PublicProfileDetail,
 } from '@/features/discovery/domain/discovery';
 import type { Artwork } from '@/features/portfolio/domain/artwork';
-import { accountDirectoryGateway } from '@/features/account/infrastructure/authGateway';
 import { portfolioGateway } from '@/features/portfolio/infrastructure/portfolioGateway';
 import type { ProfessionalProfile } from '@/features/profile/domain/profile';
 import { profileGateway } from '@/features/profile/infrastructure/profileGateway';
