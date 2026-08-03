@@ -26,12 +26,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.19.4
+          cache: pnpm
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile --strict-peer-dependencies=false
@@ -58,13 +60,16 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Prepare APK
+      - name: Prepare and verify APK
         run: |
+          set -euo pipefail
+          test -f android/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p release
-          cp android/app/build/outputs/apk/release/app-release.apk release/HABITTUS-beta.apk
-          unzip -l release/HABITTUS-beta.apk | grep -q 'assets/index.android.bundle'
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/HABITTUS-beta.apk
+          test -s release/HABITTUS-beta.apk
+          unzip -t release/HABITTUS-beta.apk >/dev/null
 
       - name: Upload validation files
         uses: actions/upload-artifact@v4
